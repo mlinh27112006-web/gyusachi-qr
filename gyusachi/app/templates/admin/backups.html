@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}Sao lưu · Admin{% endblock %}
+{% block navlinks %}{% include "admin/_nav.html" %}{% endblock %}
+{% block content %}
+  <h1>Sao lưu và phục hồi</h1>
+
+  {% if tools_error %}
+    <div class="flash">{{ tools_error }}</div>
+  {% endif %}
+
+  <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(320px,1fr));align-items:start;margin-bottom:18px">
+    <!-- ADM2.1 -->
+    <section class="card accent">
+      <h2>Sao lưu</h2>
+      <form method="post" action="{{ url_for('admin.backup_run') }}">
+        <button class="red" type="submit" {% if tools_error %}disabled{% endif %}>Sao lưu ngay</button>
+      </form>
+      <h3 style="margin-top:18px">Lịch sao lưu</h3>
+      <form method="post" action="{{ url_for('admin.backup_schedule') }}">
+        <label for="mode">Cách chạy</label>
+        <select id="mode" name="mode">
+          <option value="manual" {{ 'selected' if schedule.mode == 'manual' }}>Thủ công (chỉ khi bấm “Sao lưu ngay”)</option>
+          <option value="daily" {{ 'selected' if schedule.mode == 'daily' }}>Tự động mỗi ngày</option>
+        </select>
+        <label for="time">Giờ chạy (nếu tự động)</label>
+        <input id="time" type="time" name="time" value="{{ schedule.time }}" required>
+        <label for="keep">Số bản sao lưu giữ lại</label>
+        <input id="keep" class="num" type="number" name="keep" min="1" max="60" value="{{ schedule.keep }}" required>
+        <p style="margin-bottom:0"><button type="submit">Lưu lịch</button></p>
+      </form>
+      <p class="muted" style="font-size:.85rem;margin-bottom:0">
+        Lịch tự động chạy khi ứng dụng đang hoạt động{% if schedule.last_auto %} (lần tự động gần nhất: {{ schedule.last_auto }}){% endif %}.
+        Khi triển khai nhiều tiến trình, hãy dùng lệnh <code>flask --app run backup</code> trong Task Scheduler hoặc cron.</p>
+    </section>
+
+    <!-- ADM2.2 -->
+    <section class="card accent">
+      <h2>Phục hồi</h2>
+      <form method="post" action="{{ url_for('admin.backup_restore') }}"
+            onsubmit="return confirm('Phục hồi sẽ THAY THẾ toàn bộ dữ liệu hiện tại bằng bản đã chọn. Tiếp tục?')">
+        <label for="r-name">Bản sao lưu</label>
+        <select id="r-name" name="name" required style="width:100%">
+          {% for b in files %}<option value="{{ b.name }}">{{ b.name }} · {{ b.time.strftime('%d/%m/%Y %H:%M') }}</option>{% endfor %}
+        </select>
+        <label for="r-confirm">Gõ <strong>PHUC HOI</strong> để xác nhận</label>
+        <input id="r-confirm" name="confirm" autocomplete="off" required style="width:100%">
+        <p style="margin-bottom:0"><button class="red" type="submit" {% if tools_error or not files %}disabled{% endif %}>Phục hồi</button></p>
+      </form>
+      <p class="muted" style="font-size:.85rem;margin-bottom:0">Trước khi phục hồi, hệ thống tự tạo một bản an toàn của dữ liệu hiện tại. Phục hồi chạy trong một giao dịch: nếu lỗi giữa chừng thì dữ liệu hiện tại được giữ nguyên.</p>
+    </section>
+  </div>
+
+  <h2>Các bản sao lưu</h2>
+  <div class="card" style="padding:0;overflow-x:auto;margin-bottom:18px">
+    <table class="simple">
+      <thead><tr><th style="padding-left:14px">Tên file</th><th>Loại</th><th>Thời gian</th><th class="r">Dung lượng</th><th></th></tr></thead>
+      <tbody>
+      {% for b in files %}
+        <tr><td style="padding-left:14px">{{ b.name }}</td><td>{{ b.kind }}</td><td>{{ b.time.strftime('%d/%m/%Y %H:%M') }}</td>
+            <td class="r">{{ b.size_text }}</td>
+            <td><a class="btn small" href="{{ url_for('admin.backup_download', name=b.name) }}">Tải về</a></td></tr>
+      {% else %}
+        <tr><td colspan="5" class="muted" style="padding-left:14px">Chưa có bản sao lưu nào.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ADM2.3 -->
+  <section class="card" style="max-width:640px">
+    <h2>Dọn dẹp dữ liệu cũ</h2>
+    <p class="muted" style="margin-top:0">Xoá phiên bàn, đơn, hoá đơn, ca làm việc và các nhật ký quá thời hạn lưu trữ (mỗi tháng tính 30 ngày). Menu, bàn và tài khoản không bị đụng tới.</p>
+    <form method="get" action="{{ url_for('admin.backups') }}" class="row" style="align-items:flex-end">
+      <div><label for="months">Giữ dữ liệu bao nhiêu tháng (tối thiểu {{ min_months }})</label>
+        <input id="months" class="num" type="number" name="months" min="{{ min_months }}" max="120" value="{{ months }}" required></div>
+      <button type="submit">Xem trước</button>
+    </form>
+
+    {% if preview %}
+      <h3 style="margin-top:16px">Sẽ xoá dữ liệu cũ hơn {{ preview.cutoff.strftime('%d/%m/%Y') }}</h3>
+      <table class="simple">
+        {% for label, n in preview.rows %}<tr><td>{{ label }}</td><td class="r">{{ n }}</td></tr>{% endfor %}
+        <tr><th>Tổng</th><th class="r">{{ preview.total }}</th></tr>
+      </table>
+      {% if preview.total %}
+      <form method="post" action="{{ url_for('admin.backup_cleanup') }}" style="margin-top:10px">
+        <input type="hidden" name="months" value="{{ preview.months }}">
+        <label for="c-confirm">Gõ <strong>XOA DU LIEU</strong> để xác nhận</label>
+        <input id="c-confirm" name="confirm" autocomplete="off" required style="width:100%">
+        <p style="margin-bottom:0"><button class="red" type="submit" {% if tools_error %}disabled{% endif %}>Sao lưu rồi xoá dữ liệu cũ</button></p>
+      </form>
+      <p class="muted" style="font-size:.85rem;margin-bottom:0">Hệ thống tự sao lưu trước khi xoá; không sao lưu được thì không xoá.</p>
+      {% else %}
+        <p class="muted">Không có dữ liệu nào quá hạn.</p>
+      {% endif %}
+    {% endif %}
+  </section>
+{% endblock %}

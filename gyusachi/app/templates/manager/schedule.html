@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Lịch ca · GYUSACHI{% endblock %}
+{% block navlinks %}{% include "manager/_nav.html" %}{% endblock %}
+{% block content %}
+  <h1>Lịch ca</h1>
+
+  <!-- QLTT4.4: xếp ca -->
+  <section class="card accent" style="margin-bottom:18px">
+    <h2>Xếp ca</h2>
+    <form method="post" action="{{ url_for('manager.schedule_add') }}">
+      <div class="row" style="align-items:flex-end">
+        <div><label for="user_id">Nhân viên</label>
+          <select id="user_id" name="user_id" required>
+            {% for u in staff %}<option value="{{ u.id }}" data-role="{{ u.role.name }}">{{ u.full_name }} · {{ role_vi[u.role.name] }}</option>{% endfor %}
+          </select></div>
+        <div><label for="work_date">Ngày</label>
+          <input id="work_date" type="date" name="work_date" value="{{ default_date.isoformat() }}" min="{{ today.isoformat() }}" required></div>
+        <div><label for="start">Giờ bắt đầu</label><input id="start" type="time" name="start" value="10:30" required></div>
+        <div><label for="end">Giờ kết thúc</label><input id="end" type="time" name="end" value="14:00" required></div>
+      </div>
+      <fieldset id="tablebox" class="checks" style="margin-top:12px">
+        <legend class="muted" style="font-size:.9rem;padding:0;margin-bottom:6px">Bàn phụ trách (chỉ giao cho Phục vụ)</legend>
+        {% for t in tables %}<label><input type="checkbox" name="table_ids" value="{{ t.id }}"> {{ t.code }}</label>{% endfor %}
+      </fieldset>
+      <p style="margin-bottom:0">
+        <button class="red" type="submit" {% if not staff %}disabled title="Chưa có nhân viên đang hoạt động"{% endif %}>Xếp ca</button>
+      </p>
+    </form>
+    <p class="muted" style="font-size:.85rem;margin-bottom:0">Một nhân viên không có hai ca trùng giờ; một bàn không giao cho hai Phục vụ trùng giờ. Muốn sửa ca, xoá rồi xếp lại.</p>
+  </section>
+
+  <!-- lịch theo tuần -->
+  <div class="row spread" style="margin-bottom:10px">
+    <h2 style="margin:0">Tuần {{ monday.strftime('%d/%m') }} – {{ sunday.strftime('%d/%m/%Y') }}</h2>
+    <span class="row">
+      <a class="btn small" href="{{ url_for('manager.schedule', week=prev_week.isoformat()) }}">← Tuần trước</a>
+      <a class="btn small" href="{{ url_for('manager.schedule') }}">Tuần này</a>
+      <a class="btn small" href="{{ url_for('manager.schedule', week=next_week.isoformat()) }}">Tuần sau →</a>
+    </span>
+  </div>
+
+  <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(280px,1fr))">
+  {% for day, shifts in by_day.items() %}
+    <section class="card {{ 'accent' if day == today }}">
+      <h3>{{ weekdays[day.weekday()] }} · {{ day.strftime('%d/%m') }}{% if day == today %} <span class="pill IN_USE">Hôm nay</span>{% endif %}</h3>
+      {% for s in shifts %}
+        <div class="shift">
+          <div>
+            <strong>{{ s.user.full_name }}</strong> <span class="muted">· {{ role_vi[s.user.role.name] }}</span><br>
+            {{ s.start_time.strftime('%H:%M') }}–{{ s.end_time.strftime('%H:%M') }}
+            {% if s.tables %}<span class="muted"> · bàn {{ s.tables|map(attribute='code')|join(', ') }}</span>{% endif %}
+          </div>
+          {% if day >= today %}
+          <form method="post" action="{{ url_for('manager.schedule_delete', shift_id=s.id) }}"
+                onsubmit="return confirm('Xoá ca của {{ s.user.full_name }}?')">
+            <input type="hidden" name="week" value="{{ monday.isoformat() }}">
+            <button class="small" type="submit">Xoá</button>
+          </form>
+          {% endif %}
+        </div>
+      {% else %}
+        <p class="muted" style="margin:0">Chưa có ca.</p>
+      {% endfor %}
+    </section>
+  {% endfor %}
+  </div>
+{% endblock %}
+{% block scripts %}
+<script>
+  // Chỉ cho chọn bàn khi nhân viên được chọn là Phục vụ
+  const who = document.getElementById("user_id");
+  const box = document.getElementById("tablebox");
+  function syncTables() {
+    const opt = who.selectedOptions[0];
+    const on = !!opt && opt.dataset.role === "PHUC_VU";
+    box.hidden = !on;
+    box.querySelectorAll("input").forEach((i) => { i.disabled = !on; if (!on) i.checked = false; });
+  }
+  who.addEventListener("change", syncTables);
+  syncTables();
+</script>
+{% endblock %}

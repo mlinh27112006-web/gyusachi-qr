@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Hoá đơn · {{ sess.table.code }}{% endblock %}
+{% block navlinks %}<a href="{{ url_for('cashier.pending') }}">Bàn chờ thanh toán</a>{% endblock %}
+{% block wrapclass %}narrow{% endblock %}
+{% block content %}
+  <h1>Hoá đơn · Bàn {{ sess.table.code }}</h1>
+  <p class="muted" style="margin-top:0"><strong>{{ restaurant.name }}</strong>{% if restaurant.address %} · {{ restaurant.address }}{% endif %}</p>
+  <div class="card accent">
+    <table class="simple">
+      <tr><td>{{ sess.package.name }} × {{ inv.adults }} người lớn</td><td style="text-align:right">{{ (inv.package_price * inv.adults)|vnd }}</td></tr>
+      {% if inv.kids_mid %}
+      <tr><td>Trẻ 1m–1m3 × {{ inv.kids_mid }} (nửa giá)</td><td style="text-align:right">{{ (inv.package_price * inv.kids_mid // 2)|vnd }}</td></tr>
+      {% endif %}
+      {% if sess.kids_free %}<tr><td class="muted">Trẻ dưới 1m × {{ sess.kids_free }}</td><td class="muted" style="text-align:right">Miễn phí</td></tr>{% endif %}
+    </table>
+    <p class="row spread" style="margin-bottom:0"><span>Tổng cộng</span><span class="total">{{ inv.total|vnd }}</span></p>
+    <p style="margin:.4em 0 0"><span class="pill {{ inv.status }}">{{ 'Đã thu' if inv.status == 'PAID' else 'Chưa thu' }}</span>
+      {% if inv.method %}<span class="muted"> · {{ 'Tiền mặt' if inv.method == 'CASH' else 'Chuyển khoản' }}</span>{% endif %}</p>
+  </div>
+
+  {% if items %}
+  <details style="margin-top:12px">
+    <summary>Món đã gọi ({{ items|length }})</summary>
+    <ul>{% for it in items %}<li>{{ it.menu_item.name }} × {{ it.quantity }}</li>{% endfor %}</ul>
+  </details>
+  {% endif %}
+
+  {% if inv.status != 'PAID' %}
+    <form method="post" action="{{ url_for('cashier.pay', inv_id=inv.id) }}" class="card" style="margin-top:12px">
+      <label for="method">Hình thức thanh toán</label>
+      <select id="method" name="method" required>
+        <option value="CASH">Tiền mặt</option>
+        <option value="TRANSFER">Chuyển khoản</option>
+      </select>
+      <p><button class="red" type="submit" onclick="return confirm('Xác nhận đã thu tiền? Hoá đơn đã thu sẽ không sửa được.')">Xác nhận đã thu</button></p>
+    </form>
+    <form method="post" action="{{ url_for('cashier.make_invoice', sess_id=sess.id) }}" style="margin-top:8px">
+      <button class="small" type="submit">Tính lại theo số khách mới nhất</button>
+    </form>
+  {% else %}
+    <form method="post" action="{{ url_for('cashier.do_checkout', sess_id=sess.id) }}" style="margin-top:12px">
+      <button class="red" type="submit" style="width:100%">Checkout, trả bàn</button>
+    </form>
+  {% endif %}
+  <p class="no-print" style="margin-top:12px"><button class="small" onclick="window.print()">In hoá đơn</button></p>
+{% endblock %}

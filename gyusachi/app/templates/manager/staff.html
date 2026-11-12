@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Nhân sự · GYUSACHI{% endblock %}
+{% block navlinks %}{% include "manager/_nav.html" %}{% endblock %}
+{% block content %}
+  <h1>Nhân sự</h1>
+  <p class="muted">Quản lý tài khoản Phục vụ, Bếp và Thu ngân. Tài khoản Quản lý, Chủ và Admin không chỉnh ở đây.</p>
+
+  <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr));margin-bottom:18px">
+    <!-- QLTT4.1 -->
+    <section class="card accent">
+      <h2>Thêm tài khoản</h2>
+      <form method="post" action="{{ url_for('manager.staff_add') }}" autocomplete="off">
+        <label for="s-user">Tên đăng nhập</label>
+        <input id="s-user" name="username" required minlength="3" maxlength="50" pattern="[A-Za-z0-9_.]+" style="width:100%" autocapitalize="none">
+        <label for="s-pass">Mật khẩu (tối thiểu 6 ký tự)</label>
+        <input id="s-pass" type="password" name="password" required minlength="6" autocomplete="new-password" style="width:100%">
+        <label for="s-name">Họ tên</label>
+        <input id="s-name" name="full_name" required maxlength="100" style="width:100%">
+        <label for="s-role">Vai trò</label>
+        <select id="s-role" name="role" style="width:100%">
+          {% for r in roles %}<option value="{{ r }}">{{ role_vi[r] }}</option>{% endfor %}
+        </select>
+        <p style="margin-bottom:0"><button class="red" type="submit">Tạo tài khoản</button></p>
+      </form>
+      <p class="muted" style="font-size:.85rem;margin-bottom:0">Mật khẩu được mã hoá trước khi lưu. Hãy dặn nhân viên giữ kín mật khẩu.</p>
+    </section>
+
+    <section class="card">
+      <h2>Lịch ca</h2>
+      <p class="muted" style="margin-top:0">Xếp nhân viên vào ca và giao bàn phụ trách cho Phục vụ.</p>
+      <a class="btn" href="{{ url_for('manager.schedule') }}">Mở lịch ca</a>
+    </section>
+  </div>
+
+  <h2>Danh sách tài khoản</h2>
+  <div class="card" style="padding:0;overflow-x:auto">
+    <table class="simple">
+      <thead><tr><th style="padding-left:14px">Họ tên</th><th>Tên đăng nhập</th><th>Vai trò</th><th>Trạng thái</th><th></th></tr></thead>
+      <tbody>
+      {% for u in users %}
+        <tr {% if u.is_locked %}style="opacity:.65"{% endif %}>
+          <td style="padding-left:14px"><strong>{{ u.full_name }}</strong></td>
+          <td>{{ u.username }}</td>
+          <td>{{ role_vi[u.role.name] }}</td>
+          <td>{% if u.is_locked %}<span class="pill WAITING_PAYMENT">Đã khoá</span>{% else %}<span class="pill READY">Hoạt động</span>{% endif %}</td>
+          <td style="white-space:nowrap">
+            <a class="btn small" href="{{ url_for('manager.staff_edit', user_id=u.id) }}">Sửa</a>
+            <form method="post" action="{{ url_for('manager.staff_lock', user_id=u.id) }}" style="display:inline"
+                  onsubmit="return confirm('{{ 'Mở khoá' if u.is_locked else 'Khoá' }} tài khoản {{ u.username }}?')">
+              <button class="small" type="submit">{{ 'Mở khoá' if u.is_locked else 'Khoá' }}</button>
+            </form>
+          </td>
+        </tr>
+      {% else %}
+        <tr><td colspan="5" class="muted" style="padding-left:14px">Chưa có tài khoản nhân viên nào.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Đăng nhập · GYUSACHI{% endblock %}
+{% block nav %}{% endblock %}
+{% block wrapclass %}narrow{% endblock %}
+{% block content %}
+  <h1 style="margin-top:12vh">GYUSACHI</h1>
+  <p class="muted">Đăng nhập dành cho nhân viên.</p>
+  <form method="post" class="card accent">
+    <label for="username">Tên đăng nhập</label>
+    <input id="username" name="username" autocomplete="username" required autofocus style="width:100%">
+    <label for="password">Mật khẩu</label>
+    <input id="password" name="password" type="password" autocomplete="current-password" required style="width:100%">
+    <p><button class="red" type="submit" style="width:100%">Đăng nhập</button></p>
+  </form>
+{% endblock %}

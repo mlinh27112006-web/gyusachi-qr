@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% from "_charts.html" import bars %}
+{% block title %}Doanh thu và thống kê · GYUSACHI{% endblock %}
+{% block navlinks %}{% include "owner/_nav.html" %}{% endblock %}
+{% block content %}
+  <h1>Doanh thu và thống kê</h1>
+  <form method="get" class="filters card">
+    <div><label for="kind">Loại kỳ</label>
+      <select id="kind" name="kind">{% for k, v in kinds.items() %}<option value="{{ k }}" {{ 'selected' if k == kind }}>Theo {{ v }}</option>{% endfor %}</select></div>
+    <div><label for="from">Từ ngày</label><input id="from" type="date" name="from" value="{{ d_from.isoformat() }}"></div>
+    <div><label for="to">Đến ngày</label><input id="to" type="date" name="to" value="{{ d_to.isoformat() }}"></div>
+    <div><label for="limit">Top món</label><input id="limit" class="num" type="number" name="limit" min="1" max="50" value="{{ limit }}"></div>
+    <button class="red" type="submit">Xem</button>
+  </form>
+
+  <div class="stats">
+    <div class="stat red"><div class="v">{{ totals.revenue|vnd }}</div><div class="k">Tổng doanh thu (hoá đơn đã thu)</div></div>
+    <div class="stat"><div class="v">{{ totals.invoices|num }}</div><div class="k">Số hoá đơn (bàn)</div></div>
+    <div class="stat"><div class="v">{{ totals.guests|num }}</div><div class="k">Số khách</div></div>
+  </div>
+
+  <section class="card" style="margin-bottom:16px">
+    <h2>Doanh thu theo {{ kinds[kind] }}</h2>
+    {% if period %}{{ bars(period, 'label', 'revenue', money=True) }}{% else %}<p class="muted">Không có dữ liệu.</p>{% endif %}
+    <details style="margin-top:10px"><summary>Xem bảng số liệu</summary>
+      <table class="simple">
+        <thead><tr><th>Kỳ</th><th class="r">Hoá đơn</th><th class="r">Khách</th><th class="r">Doanh thu</th></tr></thead>
+        <tbody>{% for r in period %}<tr><td>{{ r.label }}</td><td class="r">{{ r.invoices|num }}</td><td class="r">{{ r.guests|num }}</td><td class="r">{{ r.revenue|vnd }}</td></tr>{% endfor %}</tbody>
+        <tfoot><tr><th>Tổng</th><th class="r">{{ totals.invoices|num }}</th><th class="r">{{ totals.guests|num }}</th><th class="r">{{ totals.revenue|vnd }}</th></tr></tfoot>
+      </table>
+    </details>
+  </section>
+
+  <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(320px,1fr))">
+    <section class="card">
+      <h2>Theo gói buffet</h2>
+      <table class="simple">
+        <thead><tr><th>Gói</th><th class="r">Bàn</th><th class="r">Khách</th><th class="r">Doanh thu</th></tr></thead>
+        <tbody>{% for p in packages %}<tr><td>{{ p.name }}</td><td class="r">{{ p.tables|num }}</td><td class="r">{{ p.guests|num }}</td><td class="r">{{ p.revenue|vnd }}</td></tr>{% endfor %}</tbody>
+      </table>
+      <div style="margin-top:10px">{{ bars(packages, 'name', 'revenue', money=True) }}</div>
+    </section>
+    <section class="card">
+      <h2>Top {{ limit }} món được gọi nhiều nhất</h2>
+      {% if top %}{{ bars(top, 'name', 'qty') }}{% else %}<p class="muted">Chưa có đơn trong khoảng này.</p>{% endif %}
+      <p class="muted" style="margin-bottom:0;font-size:.85rem">Tính theo số phần, không tính món đã huỷ.</p>
+    </section>
+  </div>
+{% endblock %}

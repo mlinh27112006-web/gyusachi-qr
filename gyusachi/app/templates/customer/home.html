@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}{{ table.code }} · GYUSACHI{% endblock %}
+{% block nav %}{% endblock %}
+{% block wrapclass %}narrow{% endblock %}
+{% block content %}
+  <p class="muted" style="margin:0">{{ restaurant.name }}{% if restaurant.address %} · {{ restaurant.address }}{% endif %}</p>
+  <h1>Bàn {{ table.code }}</h1>
+  <div class="card accent">
+    <strong>{{ sess.package.name }}</strong>
+    <p class="muted" style="margin:.3em 0 0">
+      {{ sess.adults }} người lớn{% if sess.kids_mid %}, {{ sess.kids_mid }} trẻ 1m–1m3{% endif %}{% if sess.kids_free %}, {{ sess.kids_free }} trẻ dưới 1m{% endif %}
+    </p>
+  </div>
+  <p><a class="btn red" style="display:block;text-align:center" href="{{ url_for('customer.menu', token=table.qr_token) }}">Xem menu và gọi món</a></p>
+  <p><a class="btn" style="display:block;text-align:center" href="{{ url_for('customer.orders', token=table.qr_token) }}">Món đã gọi</a></p>
+  <p><button style="width:100%" onclick="callStaff()">Gọi nhân viên</button></p>
+{% endblock %}
+{% block scripts %}
+<script>
+  async function callStaff() {
+    const { ok, data } = await postJSON("{{ url_for('customer.call', token=table.qr_token) }}");
+    toast(ok ? "Đã báo nhân viên, vui lòng chờ một chút" : (data.error || "Chưa gọi được nhân viên"));
+  }
+</script>
+{% endblock %}

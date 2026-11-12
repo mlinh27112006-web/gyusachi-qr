@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Dữ liệu kinh doanh · {{ restaurant.name }}{% endblock %}
+{% block navlinks %}{% include "owner/_nav.html" %}{% endblock %}
+{% block content %}
+  <h1>Dữ liệu kinh doanh <span class="pill" style="vertical-align:middle">Chỉ đọc</span></h1>
+  <form method="get" class="filters card">
+    <div><label for="type">Loại dữ liệu</label>
+      <select id="type" name="type">{% for k, v in types.items() %}<option value="{{ k }}" {{ 'selected' if k == kind }}>{{ v }}</option>{% endfor %}</select></div>
+    <div><label for="from">Từ ngày</label><input id="from" type="date" name="from" value="{{ d_from.isoformat() }}"></div>
+    <div><label for="to">Đến ngày</label><input id="to" type="date" name="to" value="{{ d_to.isoformat() }}"></div>
+    <button class="red" type="submit">Xem</button>
+  </form>
+
+  {% if table %}
+    <p class="muted">
+      {{ table.title }}: <strong>{{ table.total }}</strong> dòng
+      {% if table.ranged %}từ {{ d_from.strftime('%d/%m/%Y') }} đến {{ d_to.strftime('%d/%m/%Y') }}{% else %}(không lọc theo thời gian){% endif %}.
+      Trang {{ table.page }}/{{ table.pages }}.
+    </p>
+    <div class="card" style="padding:0;overflow-x:auto">
+      <table class="simple" style="min-width:640px">
+        <thead><tr>{% for h in table.headers %}<th {% if loop.first %}style="padding-left:14px"{% endif %}>{{ h }}</th>{% endfor %}</tr></thead>
+        <tbody>
+        {% for row in table.rows %}
+          <tr>{% for c in row %}<td {% if loop.first %}style="padding-left:14px"{% endif %}>{{ c }}</td>{% endfor %}</tr>
+        {% else %}
+          <tr><td colspan="{{ table.headers|length }}" class="muted" style="padding-left:14px">Không có dữ liệu trong khoảng này.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if table.pages > 1 %}
+      <p class="row" style="margin-top:12px">
+        {% if table.page > 1 %}<a class="btn small" href="{{ url_for('owner.data', type=kind, **{'from': d_from.isoformat(), 'to': d_to.isoformat(), 'page': table.page - 1}) }}">← Trang trước</a>{% endif %}
+        {% if table.page < table.pages %}<a class="btn small" href="{{ url_for('owner.data', type=kind, **{'from': d_from.isoformat(), 'to': d_to.isoformat(), 'page': table.page + 1}) }}">Trang sau →</a>{% endif %}
+      </p>
+    {% endif %}
+  {% endif %}
+{% endblock %}

@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% from "_charts.html" import bars %}
+{% block title %}Tổng quan ca · GYUSACHI{% endblock %}
+{% block navlinks %}{% include "manager/_nav.html" %}{% endblock %}
+{% block content %}
+  <div class="row spread">
+    <h1 style="margin:0">Tổng quan ca</h1>
+    <span class="muted">{{ o.shift_label }} · cập nhật {{ now().strftime('%H:%M') }}</span>
+  </div>
+  <p class="muted">Số liệu tự cập nhật khi có đơn mới hoặc bàn yêu cầu thanh toán. Doanh thu chỉ cộng hoá đơn đã thu.</p>
+
+  <div class="stats">
+    <div class="stat red"><div class="v">{{ o.totals.revenue|vnd }}</div><div class="k">Doanh thu đã thu trong ca</div></div>
+    <div class="stat"><div class="v">{{ o.expected|vnd }}</div><div class="k">Dự kiến chưa thu (bàn đang mở)</div></div>
+    <div class="stat"><div class="v">{{ o.tables.IN_USE }} / {{ o.tables_total }}</div><div class="k">Bàn đang dùng</div></div>
+    <div class="stat"><div class="v">{{ o.tables.WAITING_PAYMENT }}</div><div class="k">Bàn chờ thanh toán</div></div>
+    <div class="stat"><div class="v">{{ o.tables.EMPTY }}</div><div class="k">Bàn trống{% if o.locked %} ({{ o.locked }} khoá){% endif %}</div></div>
+    <div class="stat"><div class="v">{{ o.guests_in_house|num }}</div><div class="k">Khách đang trong quán</div></div>
+    <div class="stat"><div class="v">{{ o.totals.orders|num }}</div><div class="k">Đơn gọi món trong ca</div></div>
+    <div class="stat"><div class="v">{{ o.totals.dishes|num }}</div><div class="k">Số món trong ca (phần)</div></div>
+    <div class="stat"><div class="v">{{ o.pending }} · {{ o.cooking }}</div><div class="k">Món chờ bếp · đang làm</div></div>
+  </div>
+
+  <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr))">
+    <section class="card">
+      <h2>Doanh thu theo giờ</h2>
+      {% if o.hourly %}{{ bars(o.hourly, 'label', 'revenue', money=True) }}{% else %}<p class="muted">Chưa có dữ liệu.</p>{% endif %}
+    </section>
+    <section class="card">
+      <h2>Khách theo gói (trong ca)</h2>
+      {{ bars(o.packages, 'name', 'guests') }}
+    </section>
+  </div>
+
+  <section class="card accent" style="margin-top:16px">
+    <h2>Checkout thay Thu ngân (dự phòng)</h2>
+    <p class="muted" style="margin-top:0">Chỉ hiện các bàn đã thu tiền nhưng chưa trả bàn. Cách xử lý giống màn Thu ngân.</p>
+    {% for s in o.stuck %}
+      <form method="post" action="{{ url_for('manager.overview_checkout', sess_id=s.id) }}" class="row spread" style="padding:6px 0">
+        <span>Bàn <strong>{{ s.table.code }}</strong> · {{ s.package.name }}</span>
+        <button class="red small" type="submit" onclick="return confirm('Checkout bàn {{ s.table.code }}?')">Checkout</button>
+      </form>
+    {% else %}
+      <p class="muted" style="margin:0">Không có bàn nào cần checkout.</p>
+    {% endfor %}
+  </section>
+{% endblock %}
+{% block scripts %}
+<script>
+  let t;
+  const refresh = () => { clearTimeout(t); t = setTimeout(() => location.reload(), 1500); };
+  joinRooms(["kitchen", "cashier"], { new_order: refresh, payment_request: refresh });
+</script>
+{% endblock %}

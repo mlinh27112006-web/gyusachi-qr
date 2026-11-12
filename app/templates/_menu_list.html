@@ -1,0 +1,65 @@
+{# Danh sách món + giỏ, dùng chung cho khách và Phục vụ.
+   Cần: items, categories, active_cat, keyword, post_url, success_url #}
+<form method="get" class="row" style="margin-bottom:10px">
+  <input type="search" name="q" value="{{ keyword }}" placeholder="Tìm món" style="flex:1" aria-label="Tìm món">
+  {% if active_cat %}<input type="hidden" name="category" value="{{ active_cat }}">{% endif %}
+  <button type="submit">Tìm</button>
+</form>
+<div class="chips">
+  <a href="?" class="{{ 'on' if not active_cat }}">Tất cả</a>
+  {% for c in categories %}
+    <a href="?category={{ c.id }}" class="{{ 'on' if active_cat == c.id }}">{{ c.name }}</a>
+  {% endfor %}
+</div>
+
+{% for it in items %}
+  <div class="dish {{ 'out' if it.is_sold_out }}">
+    {% if it.image_url %}<img class="thumb" src="{{ it.image_url }}" alt="">{% else %}<div class="thumb" aria-hidden="true">肉</div>{% endif %}
+    <div>
+      <strong>{{ it.name }}</strong>
+      {% if it.description %}<div class="muted" style="font-size:.9rem">{{ it.description }}</div>{% endif %}
+      {% if it.is_sold_out %}
+        <div class="pill CANCELLED" style="text-decoration:none">Hết món</div>
+      {% else %}
+        <div class="muted" style="font-size:.85rem">Tối đa {{ it.max_qty }} phần mỗi lần</div>
+        <input class="note-in" id="n{{ it.id }}" maxlength="200" placeholder="Ghi chú cho bếp (không bắt buộc)" aria-label="Ghi chú cho {{ it.name }}">
+      {% endif %}
+    </div>
+    {% if not it.is_sold_out %}
+    <div class="qty">
+      <button type="button" aria-label="Bớt {{ it.name }}" onclick="chg({{ it.id }}, -1, {{ it.max_qty }})">−</button>
+      <span id="q{{ it.id }}">0</span>
+      <button type="button" aria-label="Thêm {{ it.name }}" onclick="chg({{ it.id }}, 1, {{ it.max_qty }})">+</button>
+    </div>
+    {% endif %}
+  </div>
+{% else %}
+  <p class="muted">Không có món nào phù hợp.</p>
+{% endfor %}
+
+<div class="cartbar">
+  <button id="send" class="red" type="button" onclick="sendOrder()" disabled>Chọn món để gửi</button>
+</div>
+
+<script>
+  const cart = {};
+  function chg(id, d, max) {
+    const v = Math.min(max, Math.max(0, (cart[id] || 0) + d));
+    cart[id] = v;
+    document.getElementById("q" + id).textContent = v;
+    const n = Object.values(cart).reduce((a, b) => a + b, 0);
+    const b = document.getElementById("send");
+    b.disabled = n === 0;
+    b.textContent = n ? "Gửi đơn (" + n + " phần)" : "Chọn món để gửi";
+  }
+  async function sendOrder() {
+    const items = Object.entries(cart).filter(([, q]) => q > 0).map(([id, qty]) => ({
+      id: +id, qty, note: (document.getElementById("n" + id) || {}).value || ""
+    }));
+    const b = document.getElementById("send");
+    b.disabled = true;
+    const { ok, data } = await postJSON("{{ post_url }}", { items });
+    if (ok) { location.href = "{{ success_url }}"; }
+    else { toast(data.error || "Chưa gửi được đơn"); b.disabled = false; }
+  }
+</script>

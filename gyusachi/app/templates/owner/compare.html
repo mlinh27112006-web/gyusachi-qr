@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% from "_charts.html" import bars %}
+{% block title %}So sánh · GYUSACHI{% endblock %}
+{% block navlinks %}{% include "owner/_nav.html" %}{% endblock %}
+{% block content %}
+  <h1>So sánh hai giai đoạn hoặc hai ca</h1>
+  <form method="get" class="card" style="margin-bottom:16px">
+    <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr))">
+      <div>
+        <h3>Giai đoạn A</h3>
+        <div class="row">
+          <div><label for="a_from">Từ ngày</label><input id="a_from" type="date" name="a_from" value="{{ a_from.isoformat() }}"></div>
+          <div><label for="a_to">Đến ngày</label><input id="a_to" type="date" name="a_to" value="{{ a_to.isoformat() }}"></div>
+        </div>
+        <label for="a_shift">Ca (chỉ áp dụng khi từ ngày = đến ngày)</label>
+        <select id="a_shift" name="a_shift">{% for v, name in shifts %}<option value="{{ v }}" {{ 'selected' if v == a_shift }}>{{ name }}</option>{% endfor %}</select>
+      </div>
+      <div>
+        <h3>Giai đoạn B</h3>
+        <div class="row">
+          <div><label for="b_from">Từ ngày</label><input id="b_from" type="date" name="b_from" value="{{ b_from.isoformat() }}"></div>
+          <div><label for="b_to">Đến ngày</label><input id="b_to" type="date" name="b_to" value="{{ b_to.isoformat() }}"></div>
+        </div>
+        <label for="b_shift">Ca (chỉ áp dụng khi từ ngày = đến ngày)</label>
+        <select id="b_shift" name="b_shift">{% for v, name in shifts %}<option value="{{ v }}" {{ 'selected' if v == b_shift }}>{{ name }}</option>{% endfor %}</select>
+      </div>
+    </div>
+    <p style="margin-bottom:0"><button class="red" type="submit">So sánh</button></p>
+  </form>
+
+  {% if rows %}
+  <div class="card" style="padding:0;overflow-x:auto;margin-bottom:16px">
+    <table class="simple">
+      <thead><tr><th style="padding-left:14px">Chỉ số</th><th class="r">A<br><span class="muted" style="font-weight:400">{{ a.label }}</span></th>
+        <th class="r">B<br><span class="muted" style="font-weight:400">{{ b.label }}</span></th><th class="r" style="padding-right:14px">B so với A</th></tr></thead>
+      <tbody>
+      {% for r in rows %}
+        <tr>
+          <td style="padding-left:14px">{{ r.label }}</td>
+          <td class="r">{{ (r.a|vnd) if r.money else (r.a|num) }}</td>
+          <td class="r">{{ (r.b|vnd) if r.money else (r.b|num) }}</td>
+          <td class="r {{ 'up' if r.diff > 0 else ('down' if r.diff < 0) }}" style="padding-right:14px">
+            {{ '+' if r.diff > 0 }}{{ (r.diff|vnd) if r.money else (r.diff|num) }}
+            {% if r.pct is not none %}<br><small>{{ '+' if r.pct > 0 }}{{ r.pct }}%</small>{% else %}<br><small class="muted">A bằng 0</small>{% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr))">
+    <section class="card"><h2>Doanh thu</h2>
+      {{ bars([{'label': 'A · ' ~ a.label, 'v': a.revenue}, {'label': 'B · ' ~ b.label, 'v': b.revenue}], 'label', 'v', money=True) }}</section>
+    <section class="card"><h2>Số khách</h2>
+      {{ bars([{'label': 'A · ' ~ a.label, 'v': a.guests}, {'label': 'B · ' ~ b.label, 'v': b.guests}], 'label', 'v') }}</section>
+  </div>
+  <p class="muted" style="font-size:.85rem">Hai giai đoạn dài ngắn khác nhau thì so sánh “trung bình mỗi khách” sẽ công bằng hơn so sánh tổng.</p>
+  {% endif %}
+{% endblock %}

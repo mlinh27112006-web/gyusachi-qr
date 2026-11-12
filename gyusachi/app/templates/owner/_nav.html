@@ -1,0 +1,7 @@
+<a href="{{ url_for('owner.report') }}" class="{{ 'on' if request.endpoint == 'owner.report' }}">Doanh thu và thống kê</a>
+<a href="{{ url_for('owner.compare') }}" class="{{ 'on' if request.endpoint == 'owner.compare' }}">So sánh</a>
+<a href="{{ url_for('owner.export') }}" class="{{ 'on' if request.endpoint == 'owner.export' }}">Xuất báo cáo</a>
+<a href="{{ url_for('owner.data') }}" class="{{ 'on' if request.endpoint == 'owner.data' }}">Dữ liệu</a>
+<a href="{{ url_for('owner.logs') }}" class="{{ 'on' if request.endpoint == 'owner.logs' }}">Nhật ký Quản lý</a>
+<a href="{{ url_for('owner.managers') }}" class="{{ 'on' if request.endpoint in ('owner.managers', 'owner.manager_edit') }}">Tài khoản Quản lý</a>
+<a href="{{ url_for('owner.config') }}" class="{{ 'on' if request.endpoint == 'owner.config' }}">Cấu hình</a>

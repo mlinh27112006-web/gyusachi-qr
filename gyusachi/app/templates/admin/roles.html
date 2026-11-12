@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Vai trò và quyền · Admin{% endblock %}
+{% block navlinks %}{% include "admin/_nav.html" %}{% endblock %}
+{% block content %}
+  <h1>Vai trò và quyền</h1>
+
+  <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(340px,1fr));align-items:start;margin-bottom:18px">
+    <!-- ADM1.1 -->
+    <section class="card accent">
+      <h2>Vai trò</h2>
+      {% for r in roles %}
+        {% set is_sys = r.name in system_roles %}
+        <div class="row spread" style="padding:5px 0">
+          <form method="post" action="{{ url_for('admin.role_rename', role_id=r.id) }}" class="row" style="flex:1">
+            <input name="name" value="{{ role_vi.get(r.name, r.name) if is_sys else r.name }}" maxlength="50"
+                   {% if is_sys %}disabled title="Vai trò hệ thống, không đổi tên"{% endif %} style="flex:1;min-width:0" aria-label="Tên vai trò">
+            {% if not is_sys %}<button class="small" type="submit">Đổi tên</button>{% endif %}
+          </form>
+          <span class="muted" style="font-size:.85rem;white-space:nowrap">{{ counts[r.id] }} tài khoản</span>
+          {% if not is_sys %}
+          <form method="post" action="{{ url_for('admin.role_delete', role_id=r.id) }}" onsubmit="return confirm('Xoá vai trò {{ r.name }}?')">
+            <button class="small" type="submit">Xoá</button>
+          </form>
+          {% endif %}
+        </div>
+      {% endfor %}
+      <form method="post" action="{{ url_for('admin.role_add') }}" class="row" style="margin-top:10px">
+        <input name="name" placeholder="Tên vai trò mới" maxlength="50" required style="flex:1;min-width:0" aria-label="Tên vai trò mới">
+        <button class="red small" type="submit">Thêm vai trò</button>
+      </form>
+      <p class="muted" style="font-size:.85rem;margin-bottom:0">Vai trò hệ thống (có nhãn xám) chương trình dựa vào tên nên không đổi tên hay xoá được. Vai trò tự tạo xoá được khi không còn tài khoản nào dùng.</p>
+    </section>
+
+    <section class="card">
+      <h2>Cách hoạt động</h2>
+      <p class="muted" style="margin-top:0">Mỗi màn hình kiểm tra quyền của vai trò mỗi lần vào. Tích hoặc bỏ tích bên dưới là cho vào hoặc chặn ngay, không cần khởi động lại. Vai trò Admin luôn đủ mọi quyền để không tự khoá mình.</p>
+      <p class="muted" style="margin-bottom:0">Vai trò tự tạo sau khi đăng nhập sẽ vào màn hình đầu tiên mà quyền của nó cho phép.</p>
+    </section>
+  </div>
+
+  <!-- ADM1.2 -->
+  <h2>Bảng quyền theo vai trò</h2>
+  <form method="post" action="{{ url_for('admin.role_permissions') }}">
+    <div class="card" style="padding:0;overflow-x:auto">
+      <table class="simple" style="min-width:640px">
+        <thead><tr>
+          <th style="padding-left:14px">Quyền</th>
+          {% for r in roles %}<th class="r" style="text-align:center">{{ role_vi.get(r.name, r.name) }}</th>{% endfor %}
+        </tr></thead>
+        <tbody>
+        {% for p in perms %}
+          <tr>
+            <td style="padding-left:14px">{{ perm_vi.get(p.code, p.code) }}<br><span class="muted" style="font-size:.78rem">{{ p.code }}</span></td>
+            {% for r in roles %}
+              <td style="text-align:center">
+                {% if r.name == 'ADMIN' %}
+                  <input type="checkbox" checked disabled aria-label="Admin luôn có quyền {{ p.code }}">
+                {% else %}
+                  <input type="checkbox" name="role_{{ r.id }}" value="{{ p.code }}" {{ 'checked' if p.code in granted[r.id] }}
+                         aria-label="{{ role_vi.get(r.name, r.name) }}: {{ perm_vi.get(p.code, p.code) }}" style="min-height:0">
+                {% endif %}
+              </td>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <p><button class="red" type="submit">Lưu bảng quyền</button></p>
+  </form>
+{% endblock %}

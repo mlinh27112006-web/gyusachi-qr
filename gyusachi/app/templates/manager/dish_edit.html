@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Sửa món · GYUSACHI{% endblock %}
+{% block navlinks %}{% include "manager/_nav.html" %}{% endblock %}
+{% block wrapclass %}narrow{% endblock %}
+{% block content %}
+  <h1>Sửa món</h1>
+  <form method="post" enctype="multipart/form-data" class="card accent">
+    <label for="e-name">Tên món</label>
+    <input id="e-name" name="name" value="{{ item.name }}" maxlength="120" required style="width:100%">
+    <label for="e-cat">Nhóm món</label>
+    <select id="e-cat" name="category_id" style="width:100%">
+      {% for c in categories %}<option value="{{ c.id }}" {{ 'selected' if c.id == item.category_id }}>{{ c.name }}</option>{% endfor %}
+    </select>
+    <label for="e-desc">Mô tả</label>
+    <input id="e-desc" name="description" value="{{ item.description or '' }}" maxlength="1000" style="width:100%">
+
+    <label>Ảnh hiện tại</label>
+    {% if item.image_url %}
+      <img src="{{ item.image_url }}" alt="Ảnh {{ item.name }}" style="width:160px;height:160px;object-fit:cover;border-radius:8px">
+      <div><label style="display:inline"><input type="checkbox" name="remove_image" value="1"> Xoá ảnh này</label></div>
+    {% else %}
+      <p class="muted" style="margin:0">Chưa có ảnh.</p>
+    {% endif %}
+    <label for="e-img">Ảnh mới (PNG, JPG, WEBP, tối đa 5 MB)</label>
+    <input id="e-img" type="file" name="image" accept="image/png,image/jpeg,image/webp" style="width:100%">
+
+    <p class="row" style="margin-bottom:0">
+      <button class="red" type="submit">Lưu thay đổi</button>
+      <a class="btn" href="{{ url_for('manager.menu') }}">Huỷ</a>
+    </p>
+  </form>
+  <p class="muted">Gói và số lượng tối đa chỉnh ở danh sách menu. Món không xoá được vì đã nằm trong lịch sử đơn; muốn bỏ khỏi menu thì chọn “Ẩn”.</p>
+{% endblock %}

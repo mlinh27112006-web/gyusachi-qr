@@ -1,0 +1,7 @@
+<a href="{{ url_for('admin.users') }}" class="{{ 'on' if request.endpoint in ('admin.users', 'admin.user_edit') }}">Tài khoản</a>
+<a href="{{ url_for('admin.roles') }}" class="{{ 'on' if request.endpoint == 'admin.roles' }}">Vai trò và quyền</a>
+<a href="{{ url_for('admin.backups') }}" class="{{ 'on' if request.endpoint == 'admin.backups' }}">Sao lưu</a>
+<a href="{{ url_for('admin.logs') }}" class="{{ 'on' if request.endpoint == 'admin.logs' }}">Nhật ký thao tác</a>
+<a href="{{ url_for('admin.errors') }}" class="{{ 'on' if request.endpoint == 'admin.errors' }}">Nhật ký lỗi</a>
+<a href="{{ url_for('admin.logins') }}" class="{{ 'on' if request.endpoint == 'admin.logins' }}">Đăng nhập</a>
+<a href="{{ url_for('admin.settings') }}" class="{{ 'on' if request.endpoint == 'admin.settings' }}">Cấu hình</a>

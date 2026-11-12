@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Xuất báo cáo · GYUSACHI{% endblock %}
+{% block navlinks %}{% include "owner/_nav.html" %}{% endblock %}
+{% block wrapclass %}narrow{% endblock %}
+{% block content %}
+  <h1>Xuất báo cáo</h1>
+  <form method="get" action="{{ url_for('owner.export_file') }}" class="card accent">
+    <label for="report">Loại báo cáo</label>
+    <select id="report" name="report" style="width:100%">
+      {% for key, (name, _fn) in types.items() %}<option value="{{ key }}">{{ name }}</option>{% endfor %}
+    </select>
+
+    <label for="kind">Loại kỳ (cho báo cáo doanh thu)</label>
+    <select id="kind" name="kind" style="width:100%">
+      {% for k, v in kinds.items() %}<option value="{{ k }}">Theo {{ v }}</option>{% endfor %}
+    </select>
+
+    <div class="row">
+      <div><label for="from">Từ ngày</label><input id="from" type="date" name="from" value="{{ d_from.isoformat() }}"></div>
+      <div><label for="to">Đến ngày</label><input id="to" type="date" name="to" value="{{ d_to.isoformat() }}"></div>
+      <div><label for="limit">Top món</label><input id="limit" class="num" type="number" name="limit" min="1" max="50" value="{{ limit }}"></div>
+    </div>
+
+    <label for="format">Định dạng</label>
+    <select id="format" name="format" style="width:100%">
+      <option value="xlsx">Excel (.xlsx)</option>
+      <option value="pdf">PDF</option>
+    </select>
+    <p style="margin-bottom:0"><button class="red" type="submit" style="width:100%">Tạo file và tải về</button></p>
+  </form>
+  <p class="muted">Số liệu lấy từ các hoá đơn đã thu; món đã huỷ không được tính. Mỗi lần xuất được ghi vào nhật ký hệ thống.</p>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Nhật ký Quản lý · {{ restaurant.name }}{% endblock %}
+{% block navlinks %}{% include "owner/_nav.html" %}{% endblock %}
+{% block content %}
+  <h1>Nhật ký thao tác của Quản lý</h1>
+  <form method="get" class="filters card">
+    <div><label for="user">Tài khoản Quản lý</label>
+      <select id="user" name="user">
+        <option value="">Tất cả Quản lý</option>
+        {% for m in managers %}<option value="{{ m.id }}" {{ 'selected' if m.id == user_id }}>{{ m.full_name }} ({{ m.username }})</option>{% endfor %}
+      </select></div>
+    <div><label for="from">Từ ngày</label><input id="from" type="date" name="from" value="{{ d_from.isoformat() }}"></div>
+    <div><label for="to">Đến ngày</label><input id="to" type="date" name="to" value="{{ d_to.isoformat() }}"></div>
+    <button class="red" type="submit">Xem</button>
+  </form>
+
+  <p class="muted">{{ total }} thao tác từ {{ d_from.strftime('%d/%m/%Y') }} đến {{ d_to.strftime('%d/%m/%Y') }}{% if total > rows|length %} (hiện {{ rows|length }} thao tác mới nhất, hãy thu hẹp khoảng ngày để xem phần còn lại){% endif %}.</p>
+  <div class="card" style="padding:0;overflow-x:auto">
+    <table class="simple" style="min-width:560px">
+      <thead><tr><th style="padding-left:14px">Thời gian</th><th>Quản lý</th><th>Thao tác</th><th>Chi tiết</th></tr></thead>
+      <tbody>
+      {% for r in rows %}
+        <tr><td style="padding-left:14px;white-space:nowrap">{{ r.time.strftime('%d/%m/%Y %H:%M') }}</td><td>{{ r.user }}</td><td>{{ r.action }}</td><td class="muted">{{ r.detail }}</td></tr>
+      {% else %}
+        <tr><td colspan="4" class="muted" style="padding-left:14px">Không có thao tác nào trong khoảng này.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <p class="muted" style="font-size:.85rem">Nhật ký ghi các thao tác quan trọng (menu, nhân sự, xếp ca, checkout thay Thu ngân). Đây cùng nguồn dữ liệu với nhật ký hệ thống của Admin.</p>
+{% endblock %}

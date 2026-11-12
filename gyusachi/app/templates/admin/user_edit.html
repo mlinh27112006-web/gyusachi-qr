@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Sửa tài khoản · Admin{% endblock %}
+{% block navlinks %}{% include "admin/_nav.html" %}{% endblock %}
+{% block wrapclass %}narrow{% endblock %}
+{% block content %}
+  <h1>Sửa tài khoản</h1>
+  <form method="post" class="card accent">
+    <label>Tên đăng nhập</label>
+    <input value="{{ user.username }}" disabled style="width:100%">
+    <label for="e-name">Họ tên</label>
+    <input id="e-name" name="full_name" value="{{ user.full_name }}" required maxlength="100" style="width:100%">
+    <label for="e-role">Vai trò</label>
+    <select id="e-role" name="role_id" style="width:100%">
+      {% for r in roles %}<option value="{{ r.id }}" {{ 'selected' if r.id == user.role_id }}>{{ role_vi.get(r.name, r.name) }}</option>{% endfor %}
+    </select>
+    <p class="row" style="margin-bottom:0">
+      <button class="red" type="submit">Lưu</button>
+      <a class="btn" href="{{ url_for('admin.users') }}">Quay lại</a>
+    </p>
+  </form>
+
+  <form method="post" action="{{ url_for('admin.user_password', user_id=user.id) }}" class="card" style="margin-top:16px" autocomplete="off">
+    <h2>Đặt lại mật khẩu</h2>
+    <label for="p-new">Mật khẩu mới (tối thiểu 6 ký tự)</label>
+    <input id="p-new" type="password" name="password" required minlength="6" autocomplete="new-password" style="width:100%">
+    <p class="muted" style="font-size:.85rem">Mật khẩu được lưu dạng mã hoá. Đặt lại cũng mở luôn khoá tạm do nhập sai nhiều lần. Hãy báo mật khẩu mới cho người dùng và dặn họ tự đổi lại.</p>
+    <p style="margin-bottom:0"><button type="submit" onclick="return confirm('Đặt lại mật khẩu cho {{ user.username }}?')">Đặt lại mật khẩu</button></p>
+  </form>
+{% endblock %}

@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Cấu hình kỹ thuật · Admin{% endblock %}
+{% block navlinks %}{% include "admin/_nav.html" %}{% endblock %}
+{% block content %}
+  <h1>Cấu hình kỹ thuật</h1>
+  <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(320px,1fr));align-items:start">
+
+    <!-- ADM4.2 -->
+    <section class="card accent">
+      <h2>Tham số hệ thống</h2>
+      <form method="post" action="{{ url_for('admin.settings_params') }}">
+        {% for key, spec in specs.items() %}
+          <label for="{{ key }}">{{ spec[3] }}</label>
+          <input id="{{ key }}" class="num" type="number" name="{{ key }}" min="{{ spec[0] }}" max="{{ spec[1] }}" value="{{ params[key] }}" required>
+          <span class="muted" style="font-size:.85rem"> (từ {{ spec[0] }} đến {{ spec[1] }})</span>
+        {% endfor %}
+        <p style="margin-bottom:0"><button class="red" type="submit">Lưu tham số</button></p>
+      </form>
+      <p class="muted" style="font-size:.85rem;margin-bottom:0">
+        Hết phiên: sau chừng đó phút không thao tác, người dùng bị tự đăng xuất. Màn hình bếp treo cố định nên đặt thời gian dài (ví dụ 600 phút).
+        Nhập sai quá số lần cho phép thì tài khoản bị khoá tạm 15 phút.</p>
+    </section>
+
+    <!-- ADM4.1 -->
+    <section class="card accent">
+      <h2>Máy in</h2>
+      <form method="post" action="{{ url_for('admin.settings_printer') }}">
+        <label for="p-type">Loại kết nối</label>
+        <select id="p-type" name="type" style="width:100%">
+          <option value="">Chưa dùng máy in</option>
+          {% for k, v in printer_types.items() %}<option value="{{ k }}" {{ 'selected' if printer.type == k }}>{{ v }}</option>{% endfor %}
+        </select>
+        <label for="p-addr">Địa chỉ (IP với máy in mạng; tên máy in với USB, Bluetooth)</label>
+        <input id="p-addr" name="address" value="{{ printer.address }}" maxlength="200" style="width:100%">
+        <label for="p-port">Cổng (chỉ máy in mạng, thường là 9100)</label>
+        <input id="p-port" class="num" type="number" name="port" min="1" max="65535" value="{{ printer.port or 9100 }}">
+        <p style="margin-bottom:0"><button class="red" type="submit">Lưu cấu hình máy in</button></p>
+      </form>
+      {% if printer.type == 'NETWORK' %}
+      <form method="post" action="{{ url_for('admin.settings_printer_test') }}" style="margin-top:8px">
+        <button class="small" type="submit">Kiểm tra kết nối</button>
+      </form>
+      {% endif %}
+      <p class="muted" style="font-size:.85rem;margin-bottom:0">Cấu hình được lưu để dùng khi nối máy in. Hiện nút in mã QR và hoá đơn vẫn dùng hộp thoại in của trình duyệt.</p>
+    </section>
+  </div>
+{% endblock %}

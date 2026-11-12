@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% from "_charts.html" import bars %}
+{% block title %}Báo cáo ca · GYUSACHI{% endblock %}
+{% block navlinks %}{% include "manager/_nav.html" %}{% endblock %}
+{% block content %}
+  <h1>Báo cáo theo ca và ngày</h1>
+  <form method="get" class="filters card">
+    <div><label for="date">Ngày</label><input id="date" type="date" name="date" value="{{ day.isoformat() }}"></div>
+    <div><label for="shift">Ca</label>
+      <select id="shift" name="shift">
+        {% for v, name in shifts %}<option value="{{ v }}" {{ 'selected' if v == shift }}>{{ name }}</option>{% endfor %}
+      </select></div>
+    <button class="red" type="submit">Xem</button>
+  </form>
+  <p class="muted">{{ day.strftime('%d/%m/%Y') }} · <strong>{{ label }}</strong> ({{ start.strftime('%H:%M') }} đến {{ end.strftime('%d/%m %H:%M') }}).
+    Ca là khung giờ mở cửa của ngày; hoá đơn tính vào ca theo giờ thu tiền.</p>
+
+  <div class="stats">
+    <div class="stat red"><div class="v">{{ totals.revenue|vnd }}</div><div class="k">Doanh thu (hoá đơn đã thu)</div></div>
+    <div class="stat"><div class="v">{{ totals.invoices|num }}</div><div class="k">Số hoá đơn (bàn)</div></div>
+    <div class="stat"><div class="v">{{ totals.guests|num }}</div><div class="k">Số khách</div></div>
+    <div class="stat"><div class="v">{{ totals.orders|num }}</div><div class="k">Số đơn (không tính đã huỷ)</div></div>
+    <div class="stat"><div class="v">{{ totals.dishes|num }}</div><div class="k">Số món (phần, không tính đã huỷ)</div></div>
+  </div>
+
+  <h2>Số khách và doanh thu theo gói</h2>
+  <div class="card" style="padding:0;overflow-x:auto;margin-bottom:12px">
+    <table class="simple">
+      <thead><tr><th style="padding-left:14px">Gói</th><th class="r">Số bàn</th><th class="r">Số khách</th><th class="r" style="padding-right:14px">Doanh thu</th></tr></thead>
+      <tbody>
+      {% for p in packages %}
+        <tr><td style="padding-left:14px">{{ p.name }}</td><td class="r">{{ p.tables|num }}</td><td class="r">{{ p.guests|num }}</td><td class="r" style="padding-right:14px">{{ p.revenue|vnd }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="card" style="margin-bottom:16px">{{ bars(packages, 'name', 'revenue', money=True) }}</div>
+
+  <h2>Doanh thu: các hoá đơn đã thu</h2>
+  <div class="card" style="padding:0;overflow-x:auto">
+    <table class="simple">
+      <thead><tr><th style="padding-left:14px">Giờ thu</th><th>Bàn</th><th>Gói</th><th class="r">Khách</th><th>Hình thức</th><th class="r" style="padding-right:14px">Tiền</th></tr></thead>
+      <tbody>
+      {% for i in invoices %}
+        <tr><td style="padding-left:14px">{{ i.time.strftime('%d/%m %H:%M') }}</td><td>{{ i.table }}</td><td>{{ i.package }}</td>
+            <td class="r">{{ i.guests }}</td><td>{{ i.method }}</td><td class="r" style="padding-right:14px">{{ i.total|vnd }}</td></tr>
+      {% else %}
+        <tr><td colspan="6" class="muted" style="padding-left:14px">Chưa có hoá đơn đã thu trong khoảng này.</td></tr>
+      {% endfor %}
+      </tbody>
+      {% if invoices %}
+      <tfoot><tr><th colspan="5" style="padding-left:14px">Tổng</th><th class="r" style="padding-right:14px">{{ totals.revenue|vnd }}</th></tr></tfoot>
+      {% endif %}
+    </table>
+  </div>
+{% endblock %}

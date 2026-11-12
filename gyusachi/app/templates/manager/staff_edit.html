@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Sửa tài khoản · GYUSACHI{% endblock %}
+{% block navlinks %}{% include "manager/_nav.html" %}{% endblock %}
+{% block wrapclass %}narrow{% endblock %}
+{% block content %}
+  <h1>Sửa tài khoản</h1>
+  <form method="post" class="card accent">
+    <label>Tên đăng nhập</label>
+    <input value="{{ user.username }}" disabled style="width:100%">
+    <label for="e-name">Họ tên</label>
+    <input id="e-name" name="full_name" value="{{ user.full_name }}" required maxlength="100" style="width:100%">
+    <label for="e-role">Vai trò</label>
+    <select id="e-role" name="role" style="width:100%">
+      {% for r in roles %}<option value="{{ r }}" {{ 'selected' if r == user.role.name }}>{{ role_vi[r] }}</option>{% endfor %}
+    </select>
+    <p class="row" style="margin-bottom:0">
+      <button class="red" type="submit">Lưu</button>
+      <a class="btn" href="{{ url_for('manager.staff') }}">Huỷ</a>
+    </p>
+  </form>
+  <p class="muted">Đổi một Phục vụ sang vai trò khác thì các bàn đã giao trong những ca từ hôm nay trở đi sẽ được bỏ giao. Muốn đổi mật khẩu, hãy tạo lại tài khoản hoặc dùng chức năng đổi mật khẩu của chính nhân viên.</p>
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Món đã gọi · {{ table.code }}{% endblock %}
+{% block nav %}{% endblock %}
+{% block wrapclass %}narrow{% endblock %}
+{% block content %}
+  <div class="row spread">
+    <h1 style="margin:0">Món đã gọi</h1>
+    <a class="btn small" href="{{ url_for('customer.home', token=table.qr_token) }}">Bàn {{ table.code }}</a>
+  </div>
+  <p><a class="btn red" href="{{ url_for('customer.menu', token=table.qr_token) }}">Gọi thêm món</a></p>
+
+  {% for it in items %}
+    <div class="card" style="margin-bottom:8px">
+      <div class="row spread">
+        <strong>{{ it.menu_item.name }} × {{ it.quantity }}</strong>
+        <span class="pill {{ it.status }}">{{ it.status|status_vi }}</span>
+      </div>
+      {% if it.note %}<div class="muted">Ghi chú: {{ it.note }}</div>{% endif %}
+      {% if it.status in ('PENDING', 'COOKING') and it.order.created_at >= limit %}
+        <p style="margin:8px 0 0"><button class="small" onclick="cancelItem({{ it.id }})">Huỷ món (trong {{ cancel_minutes }} phút)</button></p>
+      {% endif %}
+    </div>
+  {% else %}
+    <p class="muted">Bạn chưa gọi món nào.</p>
+  {% endfor %}
+{% endblock %}
+{% block scripts %}
+<script>
+  joinRoom("session-{{ sess.id }}", {
+    item_status: (d) => { toast(d.name + ": " + ({COOKING:"đang chế biến", READY:"đã sẵn sàng", CANCELLED:"đã huỷ", PENDING:"vẫn giữ nguyên"}[d.status] || d.status)); setTimeout(() => location.reload(), 1200); }
+  });
+  async function cancelItem(id) {
+    if (!confirm("Gửi yêu cầu huỷ món này cho bếp?")) return;
+    const { ok, data } = await postJSON("{{ url_for('customer.cancel', token=table.qr_token, item_id=0) }}".replace(/0$/, id), { reason: "Khách yêu cầu huỷ" });
+    toast(ok ? "Đã gửi yêu cầu huỷ, chờ bếp xác nhận" : (data.error || "Chưa huỷ được"));
+  }
+</script>
+{% endblock %}

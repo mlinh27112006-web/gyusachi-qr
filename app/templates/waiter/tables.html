@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Sơ đồ bàn · GYUSACHI{% endblock %}
+{% block navlinks %}{% include "waiter/_nav.html" %}{% endblock %}
+{% block content %}
+  <h1>Sơ đồ bàn</h1>
+
+  {% if calls %}
+  <div class="card accent" style="margin-bottom:12px">
+    <h3>Khách đang gọi</h3>
+    {% for c in calls %}
+      <form method="post" action="{{ url_for('waiter.call_done', call_id=c.id) }}" class="row spread">
+        <span>Bàn {{ c.session.table.code }} gọi nhân viên · {{ c.created_at.strftime('%H:%M') }}</span>
+        <button class="small" type="submit">Đã xử lý</button>
+      </form>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <div class="grid">
+  {% for t in tables %}
+    {% set s = sessions.get(t.id) %}
+    <div class="card {{ 'accent' if t.status != 'EMPTY' }}">
+      <div class="row spread">
+        <h3 style="margin:0">{{ t.code }}</h3>
+        {% if t.is_locked %}<span class="pill CANCELLED" style="text-decoration:none">Đã khoá</span>
+        {% else %}<span class="pill {{ t.status }}">{{ {'EMPTY':'Trống','IN_USE':'Đang dùng','WAITING_PAYMENT':'Chờ thanh toán'}[t.status] }}</span>{% endif %}
+      </div>
+      <div class="muted">{{ t.seats }} chỗ</div>
+
+      {% if t.status == 'EMPTY' and not t.is_locked %}
+        <details>
+          <summary>Mở bàn</summary>
+          <form method="post" action="{{ url_for('waiter.open_', table_id=t.id) }}">
+            <label>Gói buffet</label>
+            <select name="package_id" required>
+              {% for p in packages %}<option value="{{ p.id }}">{{ p.name }} · {{ p.price|vnd }}</option>{% endfor %}
+            </select>
+            <label>Người lớn</label><input class="num" type="number" name="adults" min="0" value="2">
+            <label>Trẻ 1m–1m3 (nửa giá)</label><input class="num" type="number" name="kids_mid" min="0" value="0">
+            <label>Trẻ dưới 1m (miễn phí)</label><input class="num" type="number" name="kids_free" min="0" value="0">
+            <p><button class="red" type="submit">Mở bàn</button></p>
+          </form>
+        </details>
+      {% elif s %}
+        <p style="margin:.5em 0"><strong>{{ s.package.name }}</strong><br>
+          <span class="muted">{{ s.adults }} NL{% if s.kids_mid %}, {{ s.kids_mid }} trẻ nửa giá{% endif %}{% if s.kids_free %}, {{ s.kids_free }} trẻ miễn phí{% endif %}</span></p>
+        <div class="row">
+          {% if t.status == 'IN_USE' %}
+            <a class="btn small red" href="{{ url_for('waiter.menu', sess_id=s.id) }}">Gọi món</a>
+            <form method="post" action="{{ url_for('waiter.req_pay', sess_id=s.id) }}"
+                  onsubmit="return confirm('Báo thu ngân thanh toán bàn {{ t.code }}?')">
+              <button class="small" type="submit">Yêu cầu thanh toán</button>
+            </form>
+          {% endif %}
+        </div>
+        <details>
+          <summary>Sửa số khách</summary>
+          <form method="post" action="{{ url_for('waiter.guests', sess_id=s.id) }}">
+            <label>Người lớn</label><input class="num" type="number" name="adults" min="0" value="{{ s.adults }}">
+            <label>Trẻ 1m–1m3</label><input class="num" type="number" name="kids_mid" min="0" value="{{ s.kids_mid }}">
+            <label>Trẻ dưới 1m</label><input class="num" type="number" name="kids_free" min="0" value="{{ s.kids_free }}">
+            <p><button class="small" type="submit">Lưu</button></p>
+          </form>
+        </details>
+        <details>
+          <summary>Đổi bàn</summary>
+          <form method="post" action="{{ url_for('waiter.move', sess_id=s.id) }}" class="row">
+            <select name="new_table_id" required>
+              {% for o in tables if o.status == 'EMPTY' and not o.is_locked %}<option value="{{ o.id }}">{{ o.code }}</option>{% endfor %}
+            </select>
+            <button class="small" type="submit">Chuyển</button>
+          </form>
+        </details>
+      {% endif %}
+    </div>
+  {% endfor %}
+  </div>
+{% endblock %}
+{% block scripts %}
+<script>
+  joinRoom("waiter", {
+    item_ready: (d) => toast("Bàn " + d.table + ": " + d.name + " đã sẵn sàng, mang ra bàn"),
+    staff_call: (d) => { toast("Bàn " + d.table + " đang gọi nhân viên"); setTimeout(() => location.reload(), 1500); }
+  });
+</script>
+{% endblock %}

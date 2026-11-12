@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Nhật ký lỗi · Admin{% endblock %}
+{% block navlinks %}{% include "admin/_nav.html" %}{% endblock %}
+{% block content %}
+  <h1>Nhật ký lỗi hệ thống</h1>
+  <form method="get" class="filters card">
+    <div><label for="from">Từ ngày</label><input id="from" type="date" name="from" value="{{ d_from.isoformat() }}"></div>
+    <div><label for="to">Đến ngày</label><input id="to" type="date" name="to" value="{{ d_to.isoformat() }}"></div>
+    <div><label for="level">Mức độ</label>
+      <select id="level" name="level"><option value="">Tất cả</option>
+        {% for code, name in levels.items() %}<option value="{{ code }}" {{ 'selected' if code == level }}>{{ name }}</option>{% endfor %}
+      </select></div>
+    <button class="red" type="submit">Xem</button>
+  </form>
+  <p class="muted">{{ total }} dòng{% if total > rows|length %} (hiện {{ rows|length }} dòng mới nhất){% endif %}.</p>
+  <div class="card" style="padding:0;overflow-x:auto">
+    <table class="simple" style="min-width:600px">
+      <thead><tr><th style="padding-left:14px">Thời gian</th><th>Mức độ</th><th>Nội dung</th><th>Địa chỉ trang</th></tr></thead>
+      <tbody>
+      {% for r in rows %}
+        <tr><td style="padding-left:14px;white-space:nowrap">{{ r.time.strftime('%d/%m/%Y %H:%M') }}</td>
+            <td><span class="pill {{ 'WAITING_PAYMENT' if r.level == 'ERROR' else ('IN_USE' if r.level == 'WARNING' else 'PENDING') }}">{{ r.level_vi }}</span></td>
+            <td>{{ r.message }}</td><td class="muted">{{ r.path }}</td></tr>
+      {% else %}
+        <tr><td colspan="4" class="muted" style="padding-left:14px">Không có lỗi nào trong khoảng này.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Bàn và mã QR · GYUSACHI{% endblock %}
+{% block navlinks %}<a href="{{ url_for('manager.tables') }}" class="on">Bàn và mã QR</a>{% endblock %}
+{% block content %}
+  <h1>Bàn và mã QR</h1>
+  <p class="muted">Mã QR trỏ tới <code>{{ base_url }}</code>. Nếu điện thoại quét không mở được, sửa <code>BASE_URL</code> trong file .env thành IP máy chủ trong mạng LAN.</p>
+
+  <form method="post" action="{{ url_for('manager.add_table') }}" class="row no-print" style="margin-bottom:14px">
+    <input name="code" placeholder="Mã bàn, ví dụ B11" required maxlength="20">
+    <input class="num" type="number" name="seats" min="1" value="4" aria-label="Số chỗ">
+    <button class="red" type="submit">Thêm bàn</button>
+    <button type="button" onclick="window.print()">In tất cả mã QR</button>
+  </form>
+
+  <div class="grid">
+  {% for t in tables %}
+    <div class="card">
+      <div class="row spread"><h3 style="margin:0">Bàn {{ t.code }}</h3>
+        {% if t.is_locked %}<span class="pill CANCELLED" style="text-decoration:none">Đã khoá</span>{% endif %}</div>
+      <img class="qr-img" src="{{ url_for('manager.qr_image', table_id=t.id) }}" alt="Mã QR bàn {{ t.code }}">
+      <form method="post" action="{{ url_for('manager.lock', table_id=t.id) }}" class="no-print">
+        <button class="small" type="submit">{{ 'Mở khoá bàn' if t.is_locked else 'Khoá bàn' }}</button>
+      </form>
+    </div>
+  {% endfor %}
+  </div>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Sửa tài khoản Quản lý · {{ restaurant.name }}{% endblock %}
+{% block navlinks %}{% include "owner/_nav.html" %}{% endblock %}
+{% block wrapclass %}narrow{% endblock %}
+{% block content %}
+  <h1>Sửa tài khoản Quản lý</h1>
+  <form method="post" class="card accent">
+    <label>Tên đăng nhập</label>
+    <input value="{{ user.username }}" disabled style="width:100%">
+    <label for="e-name">Họ tên</label>
+    <input id="e-name" name="full_name" value="{{ user.full_name }}" required maxlength="100" style="width:100%">
+    <p class="muted" style="margin:10px 0 0">Vai trò: <strong>Quản lý</strong> (cố định)</p>
+    <p class="row" style="margin-bottom:0">
+      <button class="red" type="submit">Lưu</button>
+      <a class="btn" href="{{ url_for('owner.managers') }}">Huỷ</a>
+    </p>
+  </form>
+  <p class="muted">Khoá hoặc mở khoá ở danh sách tài khoản. Đặt lại mật khẩu do Admin thực hiện.</p>
+{% endblock %}

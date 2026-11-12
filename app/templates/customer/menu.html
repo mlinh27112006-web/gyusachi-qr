@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Menu · {{ table.code }}{% endblock %}
+{% block nav %}{% endblock %}
+{% block wrapclass %}narrow{% endblock %}
+{% block content %}
+  <div class="row spread">
+    <h1 style="margin:0">Menu</h1>
+    <a class="btn small" href="{{ url_for('customer.home', token=table.qr_token) }}">Bàn {{ table.code }}</a>
+  </div>
+  <p class="muted">{{ sess.package.name }}</p>
+  {% include "_menu_list.html" %}
+{% endblock %}

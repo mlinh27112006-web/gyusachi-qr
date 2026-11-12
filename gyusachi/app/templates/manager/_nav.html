@@ -1,0 +1,6 @@
+<a href="{{ url_for('manager.overview') }}" class="{{ 'on' if request.endpoint == 'manager.overview' }}">Tổng quan ca</a>
+<a href="{{ url_for('manager.shift_report') }}" class="{{ 'on' if request.endpoint == 'manager.shift_report' }}">Báo cáo</a>
+<a href="{{ url_for('manager.menu') }}" class="{{ 'on' if request.endpoint in ('manager.menu', 'manager.dish_edit') }}">Menu</a>
+<a href="{{ url_for('manager.tables') }}" class="{{ 'on' if request.endpoint == 'manager.tables' }}">Bàn và mã QR</a>
+<a href="{{ url_for('manager.staff') }}" class="{{ 'on' if request.endpoint in ('manager.staff', 'manager.staff_edit') }}">Nhân sự</a>
+<a href="{{ url_for('manager.schedule') }}" class="{{ 'on' if request.endpoint == 'manager.schedule' }}">Lịch ca</a>

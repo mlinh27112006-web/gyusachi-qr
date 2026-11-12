@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Báo hết món · GYUSACHI{% endblock %}
+{% block navlinks %}{% include "kitchen/_nav.html" %}{% endblock %}
+{% block content %}
+  <h1>Báo hết món</h1>
+  <p class="muted">Món báo hết sẽ không gọi được ở màn hình khách và Phục vụ cho đến khi bật lại.</p>
+  <table class="simple">
+    {% for it in items %}
+    <tr>
+      <td>{{ it.name }}</td>
+      <td>{% if it.is_sold_out %}<span class="pill CANCELLED" style="text-decoration:none">Hết món</span>{% else %}<span class="pill READY">Còn</span>{% endif %}</td>
+      <td style="text-align:right">
+        <form method="post" action="{{ url_for('kitchen.toggle_sold_out', item_id=it.id) }}">
+          <button class="small">{{ 'Bật lại' if it.is_sold_out else 'Báo hết' }}</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+{% endblock %}

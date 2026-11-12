@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Thu ngân · GYUSACHI{% endblock %}
+{% block navlinks %}<a href="{{ url_for('cashier.pending') }}" class="on">Bàn chờ thanh toán</a>{% endblock %}
+{% block content %}
+  <h1>Bàn chờ thanh toán</h1>
+  <div class="grid">
+  {% for s in sessions %}
+    <div class="card accent">
+      <div class="row spread"><h3 style="margin:0">{{ s.table.code }}</h3><span class="pill WAITING_PAYMENT">Chờ thanh toán</span></div>
+      <p class="muted" style="margin:.4em 0">{{ s.package.name }} · {{ s.adults }} NL{% if s.kids_mid %}, {{ s.kids_mid }} trẻ nửa giá{% endif %}</p>
+      <form method="post" action="{{ url_for('cashier.make_invoice', sess_id=s.id) }}">
+        <button class="red" type="submit">Lập hoá đơn</button>
+      </form>
+    </div>
+  {% else %}
+    <p class="muted">Chưa có bàn nào yêu cầu thanh toán.</p>
+  {% endfor %}
+  </div>
+{% endblock %}
+{% block scripts %}
+<script>
+  joinRoom("cashier", {
+    payment_request: (d) => { toast("Bàn " + d.table + " yêu cầu thanh toán"); setTimeout(() => location.reload(), 800); }
+  });
+</script>
+{% endblock %}

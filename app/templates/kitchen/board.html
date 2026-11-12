@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Bếp · GYUSACHI{% endblock %}
+{% block navlinks %}{% include "kitchen/_nav.html" %}{% endblock %}
+{% block content %}
+  <h1>Đơn chờ chế biến</h1>
+
+  {% if cancels %}
+  <div class="card accent" style="margin-bottom:14px">
+    <h3>Yêu cầu huỷ món</h3>
+    {% for c in cancels %}
+      <div class="row spread" style="padding:6px 0">
+        <span>Bàn {{ c.order_item.order.session.table.code }}: {{ c.order_item.menu_item.name }} × {{ c.order_item.quantity }}
+          <span class="muted">({{ c.order_item.status|status_vi }})</span></span>
+        <span class="row">
+          <form method="post" action="{{ url_for('kitchen.cancel_decision', req_id=c.id, decision='approve') }}"><button class="small red">Đồng ý huỷ</button></form>
+          <form method="post" action="{{ url_for('kitchen.cancel_decision', req_id=c.id, decision='reject') }}"><button class="small">Từ chối</button></form>
+        </span>
+      </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <div class="grid">
+  {% for it in items %}
+    <div class="card {{ 'accent' if it.status == 'PENDING' }}">
+      <div class="row spread">
+        <strong>Bàn {{ it.order.session.table.code }}</strong>
+        <span class="muted">{{ ((now() - it.order.created_at).total_seconds() // 60)|int }} phút</span>
+      </div>
+      <p style="margin:.4em 0"><span style="font-size:1.15rem">{{ it.menu_item.name }}</span> × <strong>{{ it.quantity }}</strong></p>
+      {% if it.note %}<div class="muted">Ghi chú: {{ it.note }}</div>{% endif %}
+      <div class="row" style="margin-top:8px">
+        <span class="pill {{ it.status }}">{{ it.status|status_vi }}</span>
+        {% if it.status == 'PENDING' %}
+          <form method="post" action="{{ url_for('kitchen.move_item', item_id=it.id, action='cooking') }}"><button class="small red">Bắt đầu làm</button></form>
+        {% else %}
+          <form method="post" action="{{ url_for('kitchen.move_item', item_id=it.id, action='ready') }}"><button class="small red">Xong, mang ra</button></form>
+        {% endif %}
+      </div>
+    </div>
+  {% else %}
+    <p class="muted">Chưa có đơn nào đang chờ.</p>
+  {% endfor %}
+  </div>
+{% endblock %}
+{% block scripts %}
+<script>
+  joinRoom("kitchen", {
+    new_order: (d) => { toast("Đơn mới từ bàn " + d.table); setTimeout(() => location.reload(), 800); },
+    cancel_request: (d) => { toast("Yêu cầu huỷ: " + d.name); setTimeout(() => location.reload(), 800); }
+  });
+</script>
+{% endblock %}

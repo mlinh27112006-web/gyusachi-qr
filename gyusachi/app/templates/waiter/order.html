@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Gọi món · {{ table.code }}{% endblock %}
+{% block navlinks %}{% include "waiter/_nav.html" %}{% endblock %}
+{% block wrapclass %}narrow{% endblock %}
+{% block content %}
+  <div class="row spread">
+    <h1 style="margin:0">Gọi món · Bàn {{ table.code }}</h1>
+    <a class="btn small" href="{{ url_for('waiter.tables') }}">Quay lại</a>
+  </div>
+  <p class="muted">{{ sess.package.name }}</p>
+  {% include "_menu_list.html" %}
+{% endblock %}

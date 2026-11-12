@@ -1,0 +1,14 @@
+{# Biểu đồ thanh bằng HTML/CSS. rows: danh sách dict; label/value: tên khoá; money: hiện dạng tiền #}
+{% macro bars(rows, label, value, money=False) %}
+  {% set mx = (rows|map(attribute=value)|max) if rows else 0 %}
+  <div class="bars" role="img" aria-label="Biểu đồ thanh">
+  {% for r in rows %}
+    {% set v = r[value] %}
+    <div class="bar-row">
+      <span class="bar-label" title="{{ r[label] }}">{{ r[label] }}</span>
+      <span class="bar-track"><span class="bar-fill" style="width: {{ ((v / mx * 100)|round(1)) if mx else 0 }}%"></span></span>
+      <span class="bar-val">{{ (v|vnd) if money else (v|num) }}</span>
+    </div>
+  {% endfor %}
+  </div>
+{% endmacro %}

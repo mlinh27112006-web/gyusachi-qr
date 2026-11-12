@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}Cấu hình · {{ restaurant.name }}{% endblock %}
+{% block navlinks %}{% include "owner/_nav.html" %}{% endblock %}
+{% block content %}
+  <h1>Cấu hình kinh doanh</h1>
+
+  <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(320px,1fr));align-items:start">
+
+    <!-- CHU2.1 -->
+    <section class="card accent">
+      <h2>Thông tin nhà hàng</h2>
+      <form method="post" action="{{ url_for('owner.config_restaurant') }}">
+        <label for="c-name">Tên nhà hàng</label>
+        <input id="c-name" name="name" value="{{ info.name }}" required maxlength="120" style="width:100%">
+        <label for="c-addr">Địa chỉ</label>
+        <input id="c-addr" name="address" value="{{ info.address or '' }}" maxlength="255" style="width:100%">
+        <p style="margin-bottom:0"><button class="red" type="submit">Lưu thông tin</button></p>
+      </form>
+      <p class="muted" style="font-size:.85rem;margin-bottom:0">Tên và địa chỉ hiện trên màn hình khách, hoá đơn và báo cáo PDF.</p>
+    </section>
+
+    <!-- CHU2.3 -->
+    <section class="card accent">
+      <h2>Giá 6 gói buffet</h2>
+      <form method="post" action="{{ url_for('owner.config_prices') }}">
+        {% for p in packages %}
+          <div class="row spread" style="padding:4px 0">
+            <label for="price_{{ p.id }}" style="margin:0;color:var(--text)">{{ p.name }} <span class="muted">(cấp {{ p.tier }})</span></label>
+            <span class="row" style="gap:6px">
+              <input id="price_{{ p.id }}" name="price_{{ p.id }}" value="{{ p.price }}" inputmode="numeric"
+                     required style="width:120px;text-align:right"> <span class="muted">đ/người</span>
+            </span>
+          </div>
+        {% endfor %}
+        <p style="margin-bottom:0"><button class="red" type="submit">Lưu bảng giá</button></p>
+      </form>
+      <p class="muted" style="font-size:.85rem;margin-bottom:0">
+        Gói cao hơn phải đắt hơn gói thấp hơn. Giá mới áp dụng cho các bàn mở sau khi lưu; bàn đang ăn và hoá đơn đã lập giữ giá lúc mở bàn.
+        Tên gói dạng “Buffet 219K” sẽ tự đổi theo giá mới.</p>
+    </section>
+  </div>
+
+  <!-- CHU2.2 -->
+  <section class="card accent" style="margin-top:16px">
+    <h2>Giờ mở cửa</h2>
+    <p class="muted" style="margin-top:0">Khách chỉ gọi món được trong các khung giờ này. Mỗi ngày có thể có nhiều khung (ví dụ ca trưa và ca tối); ngày không có khung nào là ngày nghỉ.</p>
+
+    <table class="simple">
+      {% for wd in range(7) %}
+        <tr>
+          <th style="width:110px;vertical-align:top">{{ weekdays[wd] }}</th>
+          <td>
+            {% for row in hours[wd] %}
+              <form method="post" action="{{ url_for('owner.config_hours_delete', row_id=row.id) }}" class="row" style="margin-bottom:4px"
+                    onsubmit="return confirm('Xoá khung {{ row.open_time.strftime('%H:%M') }}–{{ row.close_time.strftime('%H:%M') }} của {{ weekdays[wd] }}?')">
+                <span class="pill READY" style="min-width:120px;text-align:center">{{ row.open_time.strftime('%H:%M') }} – {{ row.close_time.strftime('%H:%M') }}</span>
+                <button class="small" type="submit">Xoá</button>
+              </form>
+            {% else %}
+              <span class="muted">Nghỉ</span>
+            {% endfor %}
+          </td>
+        </tr>
+      {% endfor %}
+    </table>
+
+    <h3 style="margin-top:16px">Thêm khung giờ</h3>
+    <form method="post" action="{{ url_for('owner.config_hours_add') }}">
+      <fieldset class="checks" id="daybox">
+        <legend class="muted" style="font-size:.9rem;padding:0;margin-bottom:6px">Ngày áp dụng</legend>
+        {% for wd in range(7) %}<label><input type="checkbox" name="weekdays" value="{{ wd }}"> {{ weekdays[wd] }}</label>{% endfor %}
+      </fieldset>
+      <p class="row" style="margin:8px 0">
+        <button type="button" class="small" onclick="pick([0,1,2,3,4])">Thứ 2 – Thứ 6</button>
+        <button type="button" class="small" onclick="pick([5,6])">Cuối tuần</button>
+        <button type="button" class="small" onclick="pick([0,1,2,3,4,5,6])">Cả tuần</button>
+      </p>
+      <div class="row" style="align-items:flex-end">
+        <div><label for="open">Giờ mở</label><input id="open" type="time" name="open" value="10:30" required></div>
+        <div><label for="close">Giờ đóng</label><input id="close" type="time" name="close" value="14:00" required></div>
+        <button class="red" type="submit">Thêm khung giờ</button>
+      </div>
+    </form>
+    <p class="muted" style="font-size:.85rem;margin-bottom:0">
+      Lưu ý: các báo cáo chia “ca” theo khung giờ mở cửa hiện tại. Đổi giờ mở cửa sẽ làm thay đổi cách chia ca của các ngày cũ khi xem lại, còn tổng doanh thu mỗi ngày thì không đổi.</p>
+  </section>
+{% endblock %}
+{% block scripts %}
+<script>
+  function pick(days) {
+    document.querySelectorAll('#daybox input').forEach((c) => { c.checked = days.includes(+c.value); });
+  }
+</script>
+{% endblock %}

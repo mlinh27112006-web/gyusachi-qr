@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block title %}Quản trị menu · GYUSACHI{% endblock %}
+{% block navlinks %}{% include "manager/_nav.html" %}{% endblock %}
+{% block content %}
+  <h1>Quản trị menu</h1>
+  <p class="muted">Gói đắt hơn gồm cả món của gói rẻ hơn: món đặt ở “từ gói” nào thì gói đó và các gói cao hơn đều gọi được.</p>
+
+  <div class="grid" style="margin-bottom:18px">
+    <!-- QLTT2.1: nhóm món -->
+    <section class="card">
+      <h2>Nhóm món</h2>
+      {% for c in categories %}
+        <div class="row spread" style="padding:4px 0">
+          <form method="post" action="{{ url_for('manager.category_rename', cat_id=c.id) }}" class="row" style="flex:1">
+            <input name="name" value="{{ c.name }}" maxlength="80" aria-label="Tên nhóm" style="flex:1;min-width:0">
+            <button class="small" type="submit">Đổi tên</button>
+          </form>
+          <form method="post" action="{{ url_for('manager.category_delete', cat_id=c.id) }}"
+                onsubmit="return confirm('Xoá nhóm “{{ c.name }}”?')">
+            <button class="small" type="submit" {% if by_cat[c.id] %}title="Nhóm còn {{ by_cat[c.id]|length }} món, sẽ bị chặn"{% endif %}>Xoá</button>
+          </form>
+        </div>
+        <div class="muted" style="font-size:.85rem;margin-bottom:4px">{{ by_cat[c.id]|length }} món</div>
+      {% endfor %}
+      <form method="post" action="{{ url_for('manager.category_add') }}" class="row" style="margin-top:8px">
+        <input name="name" placeholder="Tên nhóm mới" maxlength="80" required style="flex:1;min-width:0" aria-label="Tên nhóm mới">
+        <button class="red small" type="submit">Thêm nhóm</button>
+      </form>
+    </section>
+
+    <!-- QLTT2.2: thêm món -->
+    <section class="card accent">
+      <h2>Thêm món mới</h2>
+      <form method="post" action="{{ url_for('manager.dish_add') }}" enctype="multipart/form-data">
+        <label for="n-name">Tên món</label>
+        <input id="n-name" name="name" maxlength="120" required style="width:100%">
+        <label for="n-cat">Nhóm món</label>
+        <select id="n-cat" name="category_id" required style="width:100%">
+          {% for c in categories %}<option value="{{ c.id }}">{{ c.name }}</option>{% endfor %}
+        </select>
+        <label for="n-desc">Mô tả</label>
+        <input id="n-desc" name="description" maxlength="1000" style="width:100%">
+        <label for="n-img">Ảnh (PNG, JPG, WEBP, tối đa 5 MB)</label>
+        <input id="n-img" type="file" name="image" accept="image/png,image/jpeg,image/webp" style="width:100%">
+        <div class="row">
+          <div><label for="n-tier">Từ gói</label>
+            <select id="n-tier" name="min_tier">
+              {% for p in packages %}<option value="{{ p.tier }}">{{ p.name }}</option>{% endfor %}
+            </select></div>
+          <div><label for="n-max">Tối đa/lần gọi</label><input id="n-max" class="num" type="number" name="max_qty" min="1" max="99" value="5"></div>
+        </div>
+        <p><button class="red" type="submit" {% if not categories %}disabled title="Hãy thêm nhóm món trước"{% endif %}>Lưu món</button></p>
+      </form>
+    </section>
+
+    <!-- QLTT2.5.1: tất cả món -->
+    <section class="card">
+      <h2>Giới hạn cho tất cả món</h2>
+      <p class="muted" style="margin-top:0">Đặt một số lượng tối đa mỗi lần gọi cho mọi món cùng lúc. Có thể chỉnh riêng từng món ở danh sách bên dưới.</p>
+      <form method="post" action="{{ url_for('manager.max_qty_all') }}" class="row"
+            onsubmit="return confirm('Đặt số lượng tối đa này cho TẤT CẢ món?')">
+        <input class="num" type="number" name="max_qty" min="1" max="99" value="5" aria-label="Số lượng tối đa">
+        <button type="submit">Áp dụng cho tất cả</button>
+      </form>
+    </section>
+  </div>
+
+  <!-- danh sách món theo nhóm -->
+  {% for c in categories %}
+    <h2>{{ c.name }}</h2>
+    {% if by_cat[c.id] %}
+    <div class="card" style="padding:0;overflow-x:auto">
+      <table class="simple" style="min-width:640px">
+        <thead><tr><th style="padding-left:14px">Món</th><th>Từ gói</th><th>Tối đa/lần</th><th>Trạng thái</th><th></th></tr></thead>
+        <tbody>
+        {% for it in by_cat[c.id] %}
+          <tr id="dish{{ it.id }}" {% if not it.is_active %}style="opacity:.6"{% endif %}>
+            <td style="padding-left:14px">
+              <div class="row">
+                {% if it.image_url %}<img src="{{ it.image_url }}" alt="" width="40" height="40" style="border-radius:6px;object-fit:cover">{% endif %}
+                <div><strong>{{ it.name }}</strong>
+                  {% if it.description %}<div class="muted" style="font-size:.85rem">{{ it.description }}</div>{% endif %}</div>
+              </div>
+            </td>
+            <td colspan="2">
+              <form method="post" action="{{ url_for('manager.dish_rules', item_id=it.id) }}" class="row">
+                <select name="min_tier" aria-label="Từ gói cho {{ it.name }}">
+                  {% for p in packages %}<option value="{{ p.tier }}" {{ 'selected' if p.tier == it.min_tier }}>{{ p.name }}</option>{% endfor %}
+                </select>
+                <input class="num" type="number" name="max_qty" min="1" max="99" value="{{ it.max_qty }}" aria-label="Tối đa mỗi lần gọi {{ it.name }}">
+                <button class="small" type="submit">Lưu</button>
+              </form>
+            </td>
+            <td>
+              {% if not it.is_active %}<span class="pill CANCELLED" style="text-decoration:none">Đang ẩn</span>
+              {% elif it.is_sold_out %}<span class="pill WAITING_PAYMENT">Bếp báo hết</span>
+              {% else %}<span class="pill READY">Đang bán</span>{% endif %}
+            </td>
+            <td style="white-space:nowrap">
+              <a class="btn small" href="{{ url_for('manager.dish_edit', item_id=it.id) }}">Sửa</a>
+              <form method="post" action="{{ url_for('manager.dish_toggle', item_id=it.id) }}" style="display:inline">
+                <button class="small" type="submit">{{ 'Bán lại' if not it.is_active else 'Ẩn' }}</button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+      <p class="muted">Nhóm này chưa có món.</p>
+    {% endif %}
+  {% endfor %}
+{% endblock %}

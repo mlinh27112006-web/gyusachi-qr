@@ -1,0 +1,88 @@
+/* GYUSACHI: nền đen, đỏ son (shu) làm điểm nhấn duy nhất */
+:root {
+  --ink: #15110f;
+  --panel: #201a17;
+  --panel-2: #2a221e;
+  --line: #3a2f2a;
+  --shu: #c8102e;
+  --shu-dark: #9d0d24;
+  --text: #f5efe8;
+  --muted: #a89d94;
+  --ok: #6fb58a;
+  --warn: #e0a64a;
+  --radius: 10px;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--ink); color: var(--text);
+  font-family: "Zen Kaku Gothic New", "Noto Sans JP", "Segoe UI", system-ui, sans-serif;
+  font-size: 16px; line-height: 1.5;
+}
+h1, h2, h3 { font-family: "Shippori Mincho", "Noto Serif JP", Georgia, serif; font-weight: 700; margin: 0 0 .5em; }
+h1 { font-size: 1.7rem; } h2 { font-size: 1.3rem; } h3 { font-size: 1.1rem; }
+a { color: var(--text); }
+.muted { color: var(--muted); }
+.wrap { max-width: 960px; margin: 0 auto; padding: 16px; }
+.wrap.narrow { max-width: 520px; }
+
+/* thanh trên cho nhân viên */
+.topbar { display: flex; align-items: center; gap: 16px; padding: 10px 16px; background: var(--panel); border-bottom: 3px solid var(--shu); flex-wrap: wrap; }
+.brand { font-family: "Shippori Mincho", serif; font-size: 1.25rem; font-weight: 800; letter-spacing: .08em; text-decoration: none; }
+.topbar nav { display: flex; gap: 14px; flex: 1; flex-wrap: wrap; }
+.topbar nav a { text-decoration: none; color: var(--muted); padding: 4px 0; border-bottom: 2px solid transparent; }
+.topbar nav a:hover, .topbar nav a.on { color: var(--text); border-bottom-color: var(--shu); }
+.who { color: var(--muted); font-size: .9rem; }
+
+/* thẻ, lưới, nút */
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; }
+.card.accent { border-left: 4px solid var(--shu); }
+.grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
+.row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.spread { justify-content: space-between; }
+.btn, button { font: inherit; cursor: pointer; border-radius: 8px; border: 1px solid var(--line); background: var(--panel-2); color: var(--text); padding: 9px 14px; min-height: 40px; }
+.btn:hover, button:hover { border-color: var(--muted); }
+.btn.red, button.red { background: var(--shu); border-color: var(--shu); color: #fff; }
+.btn.red:hover, button.red:hover { background: var(--shu-dark); }
+button:disabled { opacity: .45; cursor: not-allowed; }
+.btn.small, button.small { padding: 5px 10px; min-height: 32px; font-size: .9rem; }
+:focus-visible { outline: 3px solid var(--warn); outline-offset: 2px; }
+input, select { font: inherit; background: var(--ink); color: var(--text); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; min-height: 40px; max-width: 100%; }
+label { display: block; font-size: .9rem; color: var(--muted); margin: 8px 0 3px; }
+input.num { width: 72px; }
+
+/* trạng thái */
+.pill { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: .85rem; border: 1px solid var(--line); }
+.pill.EMPTY { color: var(--muted); }
+.pill.IN_USE, .pill.COOKING { color: var(--warn); border-color: var(--warn); }
+.pill.WAITING_PAYMENT { color: #fff; background: var(--shu); border-color: var(--shu); }
+.pill.READY, .pill.PAID { color: var(--ok); border-color: var(--ok); }
+.pill.CANCELLED { color: var(--muted); text-decoration: line-through; }
+.pill.PENDING { color: var(--text); }
+
+/* thông báo */
+.flash { background: var(--panel-2); border-left: 4px solid var(--warn); padding: 10px 14px; margin-bottom: 10px; border-radius: 6px; }
+#toasts { position: fixed; right: 12px; top: 12px; z-index: 50; display: grid; gap: 8px; max-width: min(360px, calc(100vw - 24px)); }
+.toast { background: var(--shu); color: #fff; padding: 10px 14px; border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,.5); }
+
+/* menu của khách */
+.chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; }
+.chips a { white-space: nowrap; text-decoration: none; padding: 6px 14px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
+.chips a.on { background: var(--shu); border-color: var(--shu); color: #fff; }
+.dish { display: grid; grid-template-columns: 72px 1fr auto; gap: 12px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.dish .thumb { width: 72px; height: 72px; border-radius: 8px; background: var(--panel-2); object-fit: cover; display: grid; place-items: center; color: var(--muted); font-size: 1.6rem; }
+.dish.out { opacity: .5; }
+.qty { display: flex; align-items: center; gap: 8px; }
+.qty button { width: 40px; padding: 0; font-size: 1.2rem; }
+.qty span { min-width: 22px; text-align: center; }
+.note-in { width: 100%; margin-top: 6px; font-size: .9rem; }
+.cartbar { position: sticky; bottom: 0; padding: 12px 16px; background: linear-gradient(transparent, var(--ink) 30%); }
+.cartbar button { width: 100%; min-height: 50px; font-size: 1.05rem; }
+
+table.simple { width: 100%; border-collapse: collapse; }
+table.simple th, table.simple td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--line); }
+.total { font-size: 1.5rem; font-family: "Shippori Mincho", serif; }
+details summary { cursor: pointer; padding: 6px 0; color: var(--muted); }
+.qr-img { width: 160px; height: 160px; background: #fff; padding: 6px; border-radius: 6px; }
+@media print { .topbar, .no-print { display: none !important; } body { background: #fff; color: #000; } }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Nhật ký đăng nhập · Admin{% endblock %}
+{% block navlinks %}{% include "admin/_nav.html" %}{% endblock %}
+{% block content %}
+  <h1>Nhật ký đăng nhập và đăng xuất</h1>
+  <form method="get" class="filters card">
+    <div><label for="from">Từ ngày</label><input id="from" type="date" name="from" value="{{ d_from.isoformat() }}"></div>
+    <div><label for="to">Đến ngày</label><input id="to" type="date" name="to" value="{{ d_to.isoformat() }}"></div>
+    <div><label for="username">Người dùng</label>
+      <select id="username" name="username"><option value="">Tất cả</option>
+        {% for u in users %}<option value="{{ u.username }}" {{ 'selected' if u.username == username }}>{{ u.full_name }} ({{ u.username }})</option>{% endfor %}
+      </select></div>
+    <button class="red" type="submit">Xem</button>
+  </form>
+  <p class="muted">{{ total }} lượt{% if total > rows|length %} (hiện {{ rows|length }} lượt mới nhất){% endif %}.</p>
+  <div class="card" style="padding:0;overflow-x:auto">
+    <table class="simple">
+      <thead><tr><th style="padding-left:14px">Thời gian</th><th>Tên đăng nhập</th><th>Sự kiện</th></tr></thead>
+      <tbody>
+      {% for r in rows %}
+        <tr><td style="padding-left:14px;white-space:nowrap">{{ r.time.strftime('%d/%m/%Y %H:%M:%S') }}</td><td>{{ r.username }}</td>
+            <td><span class="pill {{ 'WAITING_PAYMENT' if r.event == 'LOGIN_FAIL' else ('READY' if r.event == 'LOGIN' else 'PENDING') }}">{{ r.event_vi }}</span></td></tr>
+      {% else %}
+        <tr><td colspan="3" class="muted" style="padding-left:14px">Không có lượt nào trong khoảng này.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}
